@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from jinja2 import Template
 
-# File data is from https://www.estately.com/IN/North_Willow_Farms,_Indianapolis/sold
 FILE_PATH = "data/properties.json"
 OUTPUT_DIR = "visualizations"
 
