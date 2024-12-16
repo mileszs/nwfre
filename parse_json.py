@@ -10,11 +10,11 @@ from jinja2 import Template
 FILE_PATH = "data/properties.json"
 OUTPUT_DIR = "visualizations"
 
-# Read JSON data from the file
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
 with open(FILE_PATH, "r", encoding="utf-8") as file:
     data = json.load(file)
 
-# Extract properties
 properties = data.get("properties", [])
 
 # Parse and print prop details
@@ -39,7 +39,6 @@ properties = data.get("properties", [])
 
 # print("Total properties:", len(properties))
 
-# Prepare data for analysis
 df = pd.DataFrame([
     {
         "Address": prop["address"],
@@ -53,10 +52,7 @@ df = pd.DataFrame([
     for prop in properties if "unit" in prop
 ])
 
-# Create an output directory for images
-os.makedirs(OUTPUT_DIR, exist_ok=True)
-
-# Visualization 1: Price Distribution
+# Price Distribution
 plt.figure(figsize=(10, 6))
 sns.histplot(df["Price"], kde=True, bins=20)
 plt.title("Price Distribution")
@@ -75,7 +71,7 @@ plt.ylabel("Number of Properties")
 plt.savefig(f"{OUTPUT_DIR}/price_distribution_2020.png")
 plt.close()
 
-# Visualization 2: Beds vs Price
+# Beds vs Price
 plt.figure(figsize=(10, 6))
 sns.scatterplot(data=df, x="Beds", y="Price")
 plt.title("Number of Beds vs Price")
@@ -84,7 +80,7 @@ plt.ylabel("Price ($)")
 plt.savefig(f"{OUTPUT_DIR}/beds_vs_price.png")
 plt.close()
 
-# Visualization 3: Sqft vs Price
+# Sqft vs Price
 plt.figure(figsize=(10, 6))
 sns.scatterplot(data=df, x="Sqft", y="Price")
 plt.title("Square Footage vs Price")
@@ -93,7 +89,7 @@ plt.ylabel("Price ($)")
 plt.savefig(f"{OUTPUT_DIR}/sqft_vs_price.png")
 plt.close()
 
-# Visualization 4: Lot Size Distribution
+# Lot Size Distribution
 plt.figure(figsize=(10, 6))
 sns.histplot(df["Lot Size"], kde=True, bins=20)
 plt.title("Lot Size Distribution")
@@ -102,7 +98,7 @@ plt.ylabel("Number of Properties")
 plt.savefig(f"{OUTPUT_DIR}/lot_size_distribution.png")
 plt.close()
 
-# Visualization 5: Sale Trends Over Time
+# Sale Trends Over Time
 plt.figure(figsize=(10, 6))
 df_sorted = df.sort_values("Date Sold")
 sns.lineplot(data=df_sorted, x="Date Sold", y="Price")
@@ -112,7 +108,7 @@ plt.ylabel("Price ($)")
 plt.savefig(f"{OUTPUT_DIR}/sale_trends.png")
 plt.close()
 
-# Visualization 6: Correlation Matrix
+# Correlation Matrix
 plt.figure(figsize=(10, 6))
 corr = df[["Beds", "Baths", "Sqft", "Lot Size", "Price"]].corr()
 sns.heatmap(corr, annot=True, cmap="coolwarm")
@@ -120,7 +116,6 @@ plt.title("Correlation Matrix")
 plt.savefig(f"{OUTPUT_DIR}/correlation_matrix.png")
 plt.close()
 
-# HTML Template
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
@@ -175,7 +170,6 @@ HTML_TEMPLATE = """
 template = Template(HTML_TEMPLATE)
 html_content = template.render(total_properties=len(properties))
 
-# Save the HTML file
 html_path = os.path.join(OUTPUT_DIR, "analysis.html")
 with open(html_path, "w", encoding="utf-8") as f:
     f.write(html_content)
