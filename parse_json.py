@@ -95,6 +95,15 @@ plt.ylabel("Price ($)")
 plt.savefig(f"{OUTPUT_DIR}/sqft_vs_price.png")
 plt.close()
 
+# Lot Size vs Price
+plt.figure(figsize=(10, 6))
+sns.scatterplot(data=df, x="Lot Size", y="Price")
+plt.title("Lot Size vs Price")
+plt.xlabel("Lot Size (sqft)")
+plt.ylabel("Price ($)")
+plt.savefig(f"{OUTPUT_DIR}/lot_size_vs_price.png")
+plt.close()
+
 # Lot Size Distribution
 plt.figure(figsize=(10, 6))
 sns.histplot(df["Lot Size"], kde=True, bins=20)
@@ -166,6 +175,10 @@ HTML_TEMPLATE = """
         <details class="visualization">
             <summary role="button" class="outline">Square Footage vs Price</summary>
             <img src="sqft_vs_price.png" alt="Square Footage vs Price">
+        </details>
+        <details class="visualization">
+            <summary role="button" class="outline">Lot Size vs Price</summary>
+            <img src="lot_size_vs_price.png" alt="Lot Size vs Price">
         </details>
         <details class="visualization">
             <summary role="button" class="outline">Lot Size Distribution</summary>
