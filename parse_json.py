@@ -8,7 +8,7 @@ import seaborn as sns
 from jinja2 import Template
 
 FILE_PATH = "data/properties.json"
-OUTPUT_DIR = "visualizations"
+OUTPUT_DIR = "docs"
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
@@ -47,10 +47,16 @@ df = pd.DataFrame([
         "Sqft": int(prop["unit"].get("sqf", "0").replace(",", "")) if "sqf" in prop["unit"] else None,
         "Lot Size": prop["unit"].get("lot_sqft", None),
         "Price": prop["unit"].get("price", None),
-        "Date Sold": pd.to_datetime(prop["unit"].get("sale_date", None)),
+        "Date Sold": pd.to_datetime(prop["unit"].get("sale_date", None), format="%m/%d/%Y", errors="coerce"),
     }
     for prop in properties if "unit" in prop
 ])
+
+# Remove non-numeric characters and convert to float
+df["Price"] = pd.to_numeric(df["Price"], errors="coerce")
+df["Date Sold Ordinal"] = (df["Date Sold"] - pd.Timestamp("1970-01-01")) // pd.Timedelta("1D")
+
+sns.set_theme()
 
 # Price Distribution
 plt.figure(figsize=(10, 6))
@@ -101,10 +107,21 @@ plt.close()
 # Sale Trends Over Time
 plt.figure(figsize=(10, 6))
 df_sorted = df.sort_values("Date Sold")
-sns.lineplot(data=df_sorted, x="Date Sold", y="Price")
+sns.regplot(
+    data=df_sorted,
+    x="Date Sold Ordinal",
+    y="Price",
+    scatter_kws={"s": 50, "alpha": 0.5},  # Scatter point style
+    line_kws={"color": "red"},            # Line style
+    ci=None  # Disable confidence interval for cleaner trend line
+)
+# Customize the x-axis to show human-readable dates
+date_labels = [pd.to_datetime(ordinal, origin="unix", unit="D").strftime("%Y-%m-%d") for ordinal in df_sorted["Date Sold Ordinal"].unique()]
+plt.xticks(ticks=df_sorted["Date Sold Ordinal"].unique()[::10], labels=date_labels[::10], rotation=45)
 plt.title("Sale Price Trends Over Time")
 plt.xlabel("Date Sold")
 plt.ylabel("Price ($)")
+plt.tight_layout()
 plt.savefig(f"{OUTPUT_DIR}/sale_trends.png")
 plt.close()
 
@@ -124,44 +141,40 @@ HTML_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>North Willow Farms Sold Homes Analysis</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-    <style>
-        img { max-width: 100%; height: auto; }
-        .visualization { margin-bottom: 50px; }
-    </style>
 </head>
 <body>
     <main class="container">
         <h1>North Willow Farms Sold Homes Analysis</h1>
         <h2>2008-2024</h2>
         <p>Total properties analyzed: {{ total_properties }}</p>
-        <div class="visualization">
-            <h3>1. Price Distribution since June 2008</h3>
+        <details class="visualization">
+            <summary role="button" class="outline">Price Distribution since June 2008</summary>
             <img src="price_distribution.png" alt="Price Distribution">
-        </div>
-        <div class="visualization">
-            <h3>2. Price Distribution since January 2020</h3>
+        </details>
+        <details class="visualization">
+            <summary role="button" class="outline">Price Distribution since January 2020</summary>
             <img src="price_distribution_2020.png" alt="Price Distribution">
-        </div>
-        <div class="visualization">
-            <h3>3. Number of Beds vs Price</h3>
-            <img src="beds_vs_price.png" alt="Number of Beds vs Price">
-        </div>
-        <div class="visualization">
-            <h3>4. Square Footage vs Price</h3>
-            <img src="sqft_vs_price.png" alt="Square Footage vs Price">
-        </div>
-        <div class="visualization">
-            <h3>5. Lot Size Distribution</h3>
-            <img src="lot_size_distribution.png" alt="Lot Size Distribution">
-        </div>
-        <div class="visualization">
-            <h3>6. Sale Price Trends Over Time</h3>
+        </details>
+        <details class="visualization">
+            <summary role="button" class="outline">Sale Price Trends Over Time</summary>
             <img src="sale_trends.png" alt="Sale Price Trends Over Time">
-        </div>
-        <div class="visualization">
-            <h3>7. Correlation Matrix</h3>
+        </details>
+        <details class="visualization">
+            <summary role="button" class="outline">Number of Beds vs Price</summary>
+            <img src="beds_vs_price.png" alt="Number of Beds vs Price">
+        </details>
+        <details class="visualization">
+            <summary role="button" class="outline">Square Footage vs Price</summary>
+            <img src="sqft_vs_price.png" alt="Square Footage vs Price">
+        </details>
+        <details class="visualization">
+            <summary role="button" class="outline">Lot Size Distribution</summary>
+            <img src="lot_size_distribution.png" alt="Lot Size Distribution">
+        </details>
+        <details class="visualization">
+            <summary role="button" class="outline">Correlation Matrix</summary>
             <img src="correlation_matrix.png" alt="Correlation Matrix">
-        </div>
+        </details>
     </main>
 </body>
 </html>
@@ -170,7 +183,7 @@ HTML_TEMPLATE = """
 template = Template(HTML_TEMPLATE)
 html_content = template.render(total_properties=len(properties))
 
-html_path = os.path.join(OUTPUT_DIR, "analysis.html")
+html_path = os.path.join(OUTPUT_DIR, "index.html")
 with open(html_path, "w", encoding="utf-8") as f:
     f.write(html_content)
 
