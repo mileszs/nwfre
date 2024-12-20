@@ -5,6 +5,8 @@ import json
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import plotly.express as px
+import plotly.io as pio
 from jinja2 import Template
 
 FILE_PATH = "data/properties.json"
@@ -59,88 +61,41 @@ df["Date Sold Ordinal"] = (df["Date Sold"] - pd.Timestamp("1970-01-01")) // pd.T
 sns.set_theme()
 
 # Price Distribution
-plt.figure(figsize=(10, 6))
-sns.histplot(df["Price"], kde=True, bins=20)
-plt.title("Price Distribution")
-plt.xlabel("Price ($)")
-plt.ylabel("Number of Properties")
-plt.savefig(f"{OUTPUT_DIR}/price_distribution.png")
-plt.close()
+price_distribution_fig = px.histogram(df, x="Price", title="Price Distribution since June 2008")
+price_distribution_fig.update_layout(bargap=0.1)
+price_distribution_html = pio.to_html(price_distribution_fig, full_html=False)
 
 # Price Distribution since 2020
 df_sold_since_2020 = df[df["Date Sold"] >= "2020-01-01"]
-plt.figure(figsize=(10, 6))
-sns.histplot(df_sold_since_2020["Price"], kde=True, bins=20)
-plt.title("Price Distribution")
-plt.xlabel("Price ($)")
-plt.ylabel("Number of Properties")
-plt.savefig(f"{OUTPUT_DIR}/price_distribution_2020.png")
-plt.close()
-
-# Beds vs Price
-plt.figure(figsize=(10, 6))
-sns.scatterplot(data=df, x="Beds", y="Price")
-plt.title("Number of Beds vs Price")
-plt.xlabel("Number of Beds")
-plt.ylabel("Price ($)")
-plt.savefig(f"{OUTPUT_DIR}/beds_vs_price.png")
-plt.close()
-
-# Sqft vs Price
-plt.figure(figsize=(10, 6))
-sns.scatterplot(data=df, x="Sqft", y="Price")
-plt.title("Square Footage vs Price")
-plt.xlabel("Square Footage")
-plt.ylabel("Price ($)")
-plt.savefig(f"{OUTPUT_DIR}/sqft_vs_price.png")
-plt.close()
-
-# Lot Size vs Price
-plt.figure(figsize=(10, 6))
-sns.scatterplot(data=df, x="Lot Size", y="Price")
-plt.title("Lot Size vs Price")
-plt.xlabel("Lot Size (sqft)")
-plt.ylabel("Price ($)")
-plt.savefig(f"{OUTPUT_DIR}/lot_size_vs_price.png")
-plt.close()
-
-# Lot Size Distribution
-plt.figure(figsize=(10, 6))
-sns.histplot(df["Lot Size"], kde=True, bins=20)
-plt.title("Lot Size Distribution")
-plt.xlabel("Lot Size (sqft)")
-plt.ylabel("Number of Properties")
-plt.savefig(f"{OUTPUT_DIR}/lot_size_distribution.png")
-plt.close()
+price_distribution_2020_fig = px.histogram(
+    df_sold_since_2020,
+    x="Price",
+    title="Price Distribution since January 2020")
+price_distribution_2020_fig.update_layout(bargap=0.1)
+price_distribution_2020_html = pio.to_html(price_distribution_2020_fig, full_html=False)
 
 # Sale Trends Over Time
-plt.figure(figsize=(10, 6))
-df_sorted = df.sort_values("Date Sold")
-sns.regplot(
-    data=df_sorted,
-    x="Date Sold Ordinal",
-    y="Price",
-    scatter_kws={"s": 50, "alpha": 0.5},  # Scatter point style
-    line_kws={"color": "red"},            # Line style
-    ci=None  # Disable confidence interval for cleaner trend line
+sale_trends_fig = px.scatter(
+    df, x="Date Sold", y="Price", title="Sale Price Trends Over Time", trendline="ols", hover_data=["Address"]
 )
-# Customize the x-axis to show human-readable dates
-date_labels = [pd.to_datetime(ordinal, origin="unix", unit="D").strftime("%Y-%m-%d") for ordinal in df_sorted["Date Sold Ordinal"].unique()]
-plt.xticks(ticks=df_sorted["Date Sold Ordinal"].unique()[::10], labels=date_labels[::10], rotation=45)
-plt.title("Sale Price Trends Over Time")
-plt.xlabel("Date Sold")
-plt.ylabel("Price ($)")
-plt.tight_layout()
-plt.savefig(f"{OUTPUT_DIR}/sale_trends.png")
-plt.close()
+sale_trends_html = pio.to_html(sale_trends_fig, full_html=False)
 
-# Correlation Matrix
-plt.figure(figsize=(10, 6))
-corr = df[["Beds", "Baths", "Sqft", "Lot Size", "Price"]].corr()
-sns.heatmap(corr, annot=True, cmap="coolwarm")
-plt.title("Correlation Matrix")
-plt.savefig(f"{OUTPUT_DIR}/correlation_matrix.png")
-plt.close()
+beds_vs_price_fig = px.scatter(df, x="Beds", y="Price", title="Number of Beds vs Price")
+beds_vs_price_html = pio.to_html(beds_vs_price_fig, full_html=False)
+
+sqft_vs_price_fig = px.scatter(df, x="Sqft", y="Price", title="Square Footage vs Price")
+sqft_vs_price_html = pio.to_html(sqft_vs_price_fig, full_html=False)
+
+lot_size_vs_price_fig = px.scatter(df, x="Lot Size", y="Price", title="Lot Size vs Price")
+lot_size_vs_price_html = pio.to_html(lot_size_vs_price_fig, full_html=False)
+
+lot_size_distribution_fig = px.histogram(df, x="Lot Size", title="Lot Size Distribution")
+lot_size_distribution_fig.update_layout(bargap=0.1)
+lot_size_distribution_html = pio.to_html(lot_size_distribution_fig, full_html=False)
+
+correlation_matrix = df[["Beds", "Baths", "Sqft", "Lot Size", "Price"]].corr()
+correlation_matrix_fig = px.imshow(correlation_matrix, title="Correlation Matrix", text_auto=True)
+correlation_matrix_html = pio.to_html(correlation_matrix_fig, full_html=False)
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
@@ -158,35 +113,35 @@ HTML_TEMPLATE = """
         <p>Total properties analyzed: {{ total_properties }}</p>
         <details class="visualization">
             <summary role="button" class="outline">Price Distribution since June 2008</summary>
-            <img src="price_distribution.png" alt="Price Distribution">
+            {{ price_distribution_html | safe }}
         </details>
         <details class="visualization">
             <summary role="button" class="outline">Price Distribution since January 2020</summary>
-            <img src="price_distribution_2020.png" alt="Price Distribution">
+            {{ price_distribution_2020_html | safe }}
         </details>
         <details class="visualization">
             <summary role="button" class="outline">Sale Price Trends Over Time</summary>
-            <img src="sale_trends.png" alt="Sale Price Trends Over Time">
+            {{ sale_trends_html | safe }}
         </details>
         <details class="visualization">
             <summary role="button" class="outline">Number of Beds vs Price</summary>
-            <img src="beds_vs_price.png" alt="Number of Beds vs Price">
+            {{ beds_vs_price_html | safe }}
         </details>
         <details class="visualization">
             <summary role="button" class="outline">Square Footage vs Price</summary>
-            <img src="sqft_vs_price.png" alt="Square Footage vs Price">
+            {{ sqft_vs_price_html | safe }}
         </details>
         <details class="visualization">
             <summary role="button" class="outline">Lot Size vs Price</summary>
-            <img src="lot_size_vs_price.png" alt="Lot Size vs Price">
+            {{ lot_size_vs_price_html | safe }}
         </details>
         <details class="visualization">
             <summary role="button" class="outline">Lot Size Distribution</summary>
-            <img src="lot_size_distribution.png" alt="Lot Size Distribution">
+            {{ lot_size_distribution_html | safe }}
         </details>
         <details class="visualization">
             <summary role="button" class="outline">Correlation Matrix</summary>
-            <img src="correlation_matrix.png" alt="Correlation Matrix">
+            {{ correlation_matrix_html | safe }}
         </details>
     </main>
 </body>
@@ -194,7 +149,16 @@ HTML_TEMPLATE = """
 """
 
 template = Template(HTML_TEMPLATE)
-html_content = template.render(total_properties=len(properties))
+html_content = template.render(
+    total_properties=len(properties),
+    price_distribution_html=price_distribution_html,
+    price_distribution_2020_html=price_distribution_2020_html,
+    sale_trends_html=sale_trends_html,
+    beds_vs_price_html=beds_vs_price_html,
+    sqft_vs_price_html=sqft_vs_price_html,
+    lot_size_vs_price_html=lot_size_vs_price_html,
+    lot_size_distribution_html=lot_size_distribution_html,
+    correlation_matrix_html=correlation_matrix_html)
 
 html_path = os.path.join(OUTPUT_DIR, "index.html")
 with open(html_path, "w", encoding="utf-8") as f:
