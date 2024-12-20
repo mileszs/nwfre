@@ -108,6 +108,15 @@ HTML_TEMPLATE = """
 </head>
 <body>
     <main class="container">
+        <figure>
+          <img
+            src="nwf-rainbow.png"
+            alt="Rainbow over North Willow Farms"
+          />
+          <figcaption>
+            Photo from Eric White
+          </figcaption>
+        </figure>
         <h1>North Willow Farms Sold Homes Analysis</h1>
         <h2>2008-2024</h2>
         <p>Total properties analyzed: {{ total_properties }}</p>
