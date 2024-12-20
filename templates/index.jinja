@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>North Willow Farms Sold Homes Analysis</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+</head>
+<body>
+    <main class="container">
+        <figure>
+          <img
+            src="nwf-rainbow.png"
+            alt="Rainbow over North Willow Farms"
+          />
+          <figcaption>
+            Photo from Eric White
+          </figcaption>
+        </figure>
+        <h1>North Willow Farms Sold Homes Analysis</h1>
+        <h2>2008-2024</h2>
+        <p>Total properties analyzed: {{ total_properties }}</p>
+        <details class="visualization">
+            <summary role="button" class="outline">Price Distribution since June 2008</summary>
+            {{ price_distribution_html | safe }}
+        </details>
+        <details class="visualization">
+            <summary role="button" class="outline">Price Distribution since January 2020</summary>
+            {{ price_distribution_2020_html | safe }}
+        </details>
+        <details class="visualization">
+            <summary role="button" class="outline">Sale Price Trends Over Time</summary>
+            {{ sale_trends_html | safe }}
+        </details>
+        <details class="visualization">
+            <summary role="button" class="outline">Number of Beds vs Price</summary>
+            {{ beds_vs_price_html | safe }}
+        </details>
+        <details class="visualization">
+            <summary role="button" class="outline">Square Footage vs Price</summary>
+            {{ sqft_vs_price_html | safe }}
+        </details>
+        <details class="visualization">
+            <summary role="button" class="outline">Lot Size vs Price</summary>
+            {{ lot_size_vs_price_html | safe }}
+        </details>
+        <details class="visualization">
+            <summary role="button" class="outline">Lot Size Distribution</summary>
+            {{ lot_size_distribution_html | safe }}
+        </details>
+        <details class="visualization">
+            <summary role="button" class="outline">Correlation Matrix</summary>
+            {{ correlation_matrix_html | safe }}
+        </details>
+    </main>
+</body>
+</html>
