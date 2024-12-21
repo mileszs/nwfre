@@ -1,6 +1,0 @@
-jinja2
-matplotlib
-pandas
-seaborn
-plotly
-statsmodels
