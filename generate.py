@@ -3,8 +3,6 @@
 import os
 import json
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 import plotly.express as px
 import plotly.io as pio
 from jinja2 import Environment, FileSystemLoader
@@ -34,8 +32,6 @@ df = pd.DataFrame([
 # Remove non-numeric characters and convert to float
 df["Price"] = pd.to_numeric(df["Price"], errors="coerce")
 df["Date Sold Ordinal"] = (df["Date Sold"] - pd.Timestamp("1970-01-01")) // pd.Timedelta("1D")
-
-sns.set_theme()
 
 price_distribution_fig = px.histogram(df, x="Price", title="Price Distribution since June 2008")
 price_distribution_fig.update_layout(bargap=0.1)
